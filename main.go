@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"io/ioutil"
 	"sync"
 
 	"github.com/fatih/color"
@@ -24,7 +23,7 @@ func init() {
 }
 
 func removeConsoleLogsFromFile(filePath string) error {
-	code, err := ioutil.ReadFile(filePath)
+	code, err := os.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
@@ -42,7 +41,7 @@ func removeConsoleLogsFromFile(filePath string) error {
 	}
 
 	updatedCode := strings.Join(lines, "\n")
-	if err := ioutil.WriteFile(filePath, []byte(updatedCode), 0644); err != nil {
+	if err := os.WriteFile(filePath, []byte(updatedCode), 0644); err != nil {
 		return fmt.Errorf("failed to write file %s: %w", filePath, err)
 	}
 
@@ -63,7 +62,7 @@ func processFile(filePath string, wg *sync.WaitGroup) {
 }
 
 func processDirectory(dirPath string, wg *sync.WaitGroup) {
-	files, err := ioutil.ReadDir(dirPath)
+	files, err := os.ReadDir(dirPath)
 	if err != nil {
 		color.Red("Error reading directory %s: %v", dirPath, err)
 		return
@@ -85,9 +84,9 @@ func processDirectory(dirPath string, wg *sync.WaitGroup) {
 func isExcludedDir(dirName string) bool {
 	excludedDirs := map[string]bool{
 		"node_modules": true,
-		".git":          true,
-		"dist":          true,
-		"build":         true,
+		".git":         true,
+		"dist":         true,
+		"build":        true,
 	}
 	return excludedDirs[dirName]
 }
