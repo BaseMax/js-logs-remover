@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 	"io/ioutil"
-	"regexp"
 	"sync"
 
 	"github.com/fatih/color"
@@ -18,40 +17,44 @@ var consoleMethods = []string{
 	"table", "time", "timeEnd", "timeLog", "timeStamp", "trace", "warn",
 }
 
-var methodRegex *regexp.Regexp
 var allowedMethods map[string]bool
 
 func init() {
-	methodRegex = regexp.MustCompile(`console\.(\w+)`)
 	allowedMethods = make(map[string]bool)
 }
 
 func removeConsoleLogsFromFile(filePath string) error {
 	code, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 
 	content := string(code)
 	lines := strings.Split(content, "\n")
+
 	for i, line := range lines {
-		for _, method := range allowedMethods {
+		for method := range allowedMethods {
 			if strings.Contains(line, "console."+method+"(") {
 				lines[i] = ""
 				break
 			}
 		}
 	}
+
 	updatedCode := strings.Join(lines, "\n")
-	return ioutil.WriteFile(filePath, []byte(updatedCode), 0644)
+	if err := ioutil.WriteFile(filePath, []byte(updatedCode), 0644); err != nil {
+		return fmt.Errorf("failed to write file %s: %w", filePath, err)
+	}
+
+	return nil
 }
 
 func processFile(filePath string, wg *sync.WaitGroup) {
 	defer wg.Done()
+
 	ext := filepath.Ext(filePath)
 	if ext == ".js" || ext == ".ts" || ext == ".jsx" || ext == ".tsx" {
-		err := removeConsoleLogsFromFile(filePath)
-		if err != nil {
+		if err := removeConsoleLogsFromFile(filePath); err != nil {
 			color.Red("Error processing file %s: %v", filePath, err)
 		} else {
 			color.Green("Processed: %s", filePath)
@@ -69,7 +72,7 @@ func processDirectory(dirPath string, wg *sync.WaitGroup) {
 	for _, file := range files {
 		fullPath := filepath.Join(dirPath, file.Name())
 		if file.IsDir() {
-			if file.Name() != "node_modules" && file.Name() != ".git" && file.Name() != "dist" && file.Name() != "build" {
+			if !isExcludedDir(file.Name()) {
 				processDirectory(fullPath, wg)
 			}
 		} else {
@@ -79,6 +82,16 @@ func processDirectory(dirPath string, wg *sync.WaitGroup) {
 	}
 }
 
+func isExcludedDir(dirName string) bool {
+	excludedDirs := map[string]bool{
+		"node_modules": true,
+		".git":          true,
+		"dist":          true,
+		"build":         true,
+	}
+	return excludedDirs[dirName]
+}
+
 func main() {
 	if len(os.Args) < 2 {
 		fmt.Println("Usage: js-logs-remover [path] [log-methods]")
@@ -86,12 +99,7 @@ func main() {
 	}
 
 	args := os.Args[2:]
-	removeAllLogs := false
 	if len(args) == 1 && args[0] == "all" {
-		removeAllLogs = true
-	}
-
-	if removeAllLogs {
 		for _, method := range consoleMethods {
 			allowedMethods[method] = true
 		}
