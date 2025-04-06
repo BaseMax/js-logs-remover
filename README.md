@@ -15,13 +15,13 @@ To install `js-logs-remover`, you must have Go installed on your machine.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/BaseMax/js-logs-remover.git
+   git clone https://github.com/BaseMax/js-logs-remover-go.git
    ```
 
 2. Navigate to the directory:
 
    ```bash
-   cd js-logs-remover
+   cd js-logs-remover-go
    ```
 
 3. Build the Go application:
