@@ -1,4 +1,4 @@
-# js-logs-remover
+# js-logs-remover in Go
 
 `js-logs-remover` is a command-line utility written in Go that removes specified `console` logging methods (e.g., `console.log()`, `console.error()`) from JavaScript/TypeScript files within a directory. This tool is useful for cleaning up log statements before deploying or publishing code.
 
