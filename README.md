@@ -21,14 +21,14 @@ To install `js-logs-remover`, you must have Go installed on your machine.
 2. Navigate to the directory:
 
    ```bash
-  cd js-logs-remover
-  ```
+   cd js-logs-remover
+   ```
 
 3. Build the Go application:
 
    ```bash
-  go build
-  ```
+   go build
+   ```
 
 After building, you will have a js-logs-remover binary in the project directory.
 
